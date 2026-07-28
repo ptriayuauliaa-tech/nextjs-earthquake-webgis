@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Header from "@/components/layout/Header";
 
 const EarthquakeMap = dynamic(
   () => import("@/components/map/EarthquakeMap"),
@@ -9,8 +10,11 @@ const EarthquakeMap = dynamic(
 
 export default function Home() {
   return (
-    <main className="h-screen w-screen">
-      <EarthquakeMap />
-    </main>
+    <div className="flex h-screen w-screen flex-col">
+      <Header />
+      <main className="flex-1">
+        <EarthquakeMap />
+      </main>
+    </div>
   );
 }
