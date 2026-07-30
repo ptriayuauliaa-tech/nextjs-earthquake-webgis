@@ -1,6 +1,6 @@
 "use client";
 
-import { MapContainer, TileLayer, CircleMarker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Popup, Polygon, Marker } from "react-leaflet";
 import { useEarthquakes } from "@/hooks/useEarthquakes";
 import {
   getMagnitudeColor,
@@ -9,6 +9,7 @@ import {
 } from "@/lib/utils/magnitude";
 import DrawControl from "./DrawControl";
 import type { DrawnShape } from "@/types/monitoring-area";
+import type { MonitoringArea } from "@/hooks/useMonitoringAreas";
 
 const INDONESIA_CENTER: [number, number] = [-2.5489, 118.0149];
 const DEFAULT_ZOOM = 5;
@@ -16,9 +17,10 @@ const MIN_ZOOM = 4;
 
 interface EarthquakeMapProps {
   onShapeDrawn: (shape: DrawnShape) => void;
+  monitoringAreas: MonitoringArea[];
 }
 
-export default function EarthquakeMap({ onShapeDrawn }: EarthquakeMapProps) {
+export default function EarthquakeMap({ onShapeDrawn, monitoringAreas }: EarthquakeMapProps) {
   const { data, status, errorMessage } = useEarthquakes();
 
   return (
@@ -49,6 +51,45 @@ export default function EarthquakeMap({ onShapeDrawn }: EarthquakeMapProps) {
         />
 
         <DrawControl onShapeDrawn={onShapeDrawn} />
+
+        {monitoringAreas.map((area) => {
+          if (area.geometry.type === "Polygon") {
+            const coordinates = (area.geometry.coordinates[0] as [number, number][]).map(
+              ([lng, lat]) => [lat, lng] as [number, number]
+            );
+            return (
+              <Polygon
+                key={area.id}
+                positions={coordinates}
+                pathOptions={{ color: "#4fb3a9", fillOpacity: 0.3 }}
+              >
+                <Popup>
+                  <div className="font-sans text-sm">
+                    <p className="font-semibold">{area.name}</p>
+                    <p className="font-mono text-xs">{area.category}</p>
+                    {area.description && <p>{area.description}</p>}
+                  </div>
+                </Popup>
+              </Polygon>
+            );
+          }
+
+          if (area.geometry.type === "Point") {
+            const [lng, lat] = area.geometry.coordinates as [number, number];
+            return (
+              <Marker key={area.id} position={[lat, lng]}>
+                <Popup>
+                  <div className="font-sans text-sm">
+                    <p className="font-semibold">{area.name}</p>
+                    <p className="font-mono text-xs">{area.category}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          }
+
+          return null;
+        })}
 
         {data?.features.map((feature) => {
           const [lng, lat, depth] = feature.geometry.coordinates;
