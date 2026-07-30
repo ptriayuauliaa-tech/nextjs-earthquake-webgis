@@ -7,6 +7,7 @@ import {
   getMagnitudeRadius,
   formatEarthquakeTime,
 } from "@/lib/utils/magnitude";
+import DrawControl from "./DrawControl";
 
 const INDONESIA_CENTER: [number, number] = [-2.5489, 118.0149];
 const DEFAULT_ZOOM = 5;
@@ -41,6 +42,8 @@ export default function EarthquakeMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        <DrawControl />
 
         {data?.features.map((feature) => {
           const [lng, lat, depth] = feature.geometry.coordinates;
