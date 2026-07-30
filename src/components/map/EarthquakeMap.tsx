@@ -1,7 +1,15 @@
 "use client";
 
-import { MapContainer, TileLayer, CircleMarker, Popup, Polygon, Marker } from "react-leaflet";
-import { useEarthquakes } from "@/hooks/useEarthquakes";
+import { useEffect } from "react";
+import {
+  MapContainer,
+  TileLayer,
+  CircleMarker,
+  Popup,
+  Polygon,
+  Marker,
+  useMap,
+} from "react-leaflet";
 import {
   getMagnitudeColor,
   getMagnitudeRadius,
@@ -10,6 +18,7 @@ import {
 import DrawControl from "./DrawControl";
 import type { DrawnShape } from "@/types/monitoring-area";
 import type { MonitoringArea } from "@/hooks/useMonitoringAreas";
+import type { EarthquakeFeatureCollection } from "@/types/earthquake";
 
 const INDONESIA_CENTER: [number, number] = [-2.5489, 118.0149];
 const DEFAULT_ZOOM = 5;
@@ -18,26 +27,46 @@ const MIN_ZOOM = 4;
 interface EarthquakeMapProps {
   onShapeDrawn: (shape: DrawnShape) => void;
   monitoringAreas: MonitoringArea[];
+  earthquakeData: EarthquakeFeatureCollection | null;
+  focusedAreaId: string | null;
 }
 
-export default function EarthquakeMap({ onShapeDrawn, monitoringAreas }: EarthquakeMapProps) {
-  const { data, status, errorMessage } = useEarthquakes();
+function FlyToArea({
+  areaId,
+  areas,
+}: {
+  areaId: string | null;
+  areas: MonitoringArea[];
+}) {
+  const map = useMap();
 
+  useEffect(() => {
+    if (!areaId) return;
+    const area = areas.find((a) => a.id === areaId);
+    if (!area) return;
+
+    if (area.geometry.type === "Polygon") {
+      const coords = (area.geometry.coordinates[0] as [number, number][]).map(
+        ([lng, lat]) => [lat, lng] as [number, number]
+      );
+      map.fitBounds(coords);
+    } else if (area.geometry.type === "Point") {
+      const [lng, lat] = area.geometry.coordinates as [number, number];
+      map.flyTo([lat, lng], 10);
+    }
+  }, [areaId, areas, map]);
+
+  return null;
+}
+
+export default function EarthquakeMap({
+  onShapeDrawn,
+  monitoringAreas,
+  earthquakeData,
+  focusedAreaId,
+}: EarthquakeMapProps) {
   return (
     <div className="relative h-full w-full">
-      {status === "loading" && (
-        <div className="absolute top-4 left-1/2 z-[1000] -translate-x-1/2 rounded-full border border-line bg-panel px-4 py-2 text-xs font-mono text-ink-muted shadow-lg">
-          Memuat data gempa...
-        </div>
-      )}
-
-      {status === "error" && (
-        <div className="absolute top-4 left-1/2 z-[1000] -translate-x-1/2 rounded-lg border border-line bg-panel px-4 py-2 text-xs text-ink shadow-lg">
-          <span className="font-semibold text-red-400">Gagal memuat data:</span>{" "}
-          {errorMessage}
-        </div>
-      )}
-
       <MapContainer
         center={INDONESIA_CENTER}
         zoom={DEFAULT_ZOOM}
@@ -51,6 +80,7 @@ export default function EarthquakeMap({ onShapeDrawn, monitoringAreas }: Earthqu
         />
 
         <DrawControl onShapeDrawn={onShapeDrawn} />
+        <FlyToArea areaId={focusedAreaId} areas={monitoringAreas} />
 
         {monitoringAreas.map((area) => {
           if (area.geometry.type === "Polygon") {
@@ -91,7 +121,7 @@ export default function EarthquakeMap({ onShapeDrawn, monitoringAreas }: Earthqu
           return null;
         })}
 
-        {data?.features.map((feature) => {
+        {earthquakeData?.features.map((feature) => {
           const [lng, lat, depth] = feature.geometry.coordinates;
           const { mag, place, time } = feature.properties;
 
