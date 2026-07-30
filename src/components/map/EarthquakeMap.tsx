@@ -8,12 +8,17 @@ import {
   formatEarthquakeTime,
 } from "@/lib/utils/magnitude";
 import DrawControl from "./DrawControl";
+import type { DrawnShape } from "@/types/monitoring-area";
 
 const INDONESIA_CENTER: [number, number] = [-2.5489, 118.0149];
 const DEFAULT_ZOOM = 5;
 const MIN_ZOOM = 4;
 
-export default function EarthquakeMap() {
+interface EarthquakeMapProps {
+  onShapeDrawn: (shape: DrawnShape) => void;
+}
+
+export default function EarthquakeMap({ onShapeDrawn }: EarthquakeMapProps) {
   const { data, status, errorMessage } = useEarthquakes();
 
   return (
@@ -43,7 +48,7 @@ export default function EarthquakeMap() {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        <DrawControl />
+        <DrawControl onShapeDrawn={onShapeDrawn} />
 
         {data?.features.map((feature) => {
           const [lng, lat, depth] = feature.geometry.coordinates;

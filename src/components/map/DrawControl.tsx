@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet-draw";
+import type { DrawnShape } from "@/types/monitoring-area";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -12,7 +13,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-export default function DrawControl() {
+interface DrawControlProps {
+  onShapeDrawn: (shape: DrawnShape) => void;
+}
+
+export default function DrawControl({ onShapeDrawn }: DrawControlProps) {
   const map = useMap();
 
   useEffect(() => {
@@ -40,18 +45,18 @@ export default function DrawControl() {
 
     map.on(L.Draw.Event.CREATED, (event: any) => {
       const layer = event.layer;
-      const type = event.layerType;
+      const type = event.layerType as "marker" | "polygon";
       drawnItems.addLayer(layer);
 
       const geojson = layer.toGeoJSON();
-      console.log("Bentuk baru digambar:", type, geojson);
+      onShapeDrawn({ type, geojson });
     });
 
     return () => {
       map.removeControl(drawControl);
       map.removeLayer(drawnItems);
     };
-  }, [map]);
+  }, [map, onShapeDrawn]);
 
   return null;
 }
