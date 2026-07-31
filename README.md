@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Earthquake Monitoring WebGIS
 
-## Getting Started
+Aplikasi WebGIS untuk memantau persebaran gempa bumi terkini di wilayah Indonesia dan sekitarnya, sekaligus memungkinkan pengguna menandai dan mengelola area pantauan (rawan bencana) secara mandiri melalui peta interaktif.
 
-First, run the development server:
+🔗 **Live demo:** https://nextjs-earthquake-webgis.vercel.app
 
-```bash
+## Latar Belakang
+
+Informasi gempa dari sumber publik sering kali disajikan dalam bentuk tabel atau teks yang kurang intuitif untuk dipahami secara spasial. Aplikasi ini dibuat untuk menampilkan data gempa dalam bentuk peta interaktif, sekaligus memberi ruang bagi pengguna untuk mendokumentasikan area-area yang perlu dipantau (misalnya zona rawan banjir atau longsor) dalam bentuk titik maupun polygon, yang tersimpan secara permanen dan dapat diakses kembali.
+
+## Teknologi yang Digunakan
+
+- **Next.js** (App Router) — framework React untuk membangun aplikasi web
+- **TypeScript** — memastikan keamanan tipe data di seluruh aplikasi
+- **Leaflet** & **react-leaflet** — pustaka peta interaktif
+- **leaflet-draw** — alat gambar titik dan polygon di atas peta
+- **Supabase** — database (PostgreSQL) untuk menyimpan data area pantauan
+- **Tailwind CSS** — styling
+- **Vercel** — platform deployment
+
+## Sumber API Publik
+
+Data gempa diambil secara real-time dari **USGS Earthquake Hazards Program**:
+
+https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson
+
+
+## Fitur Aplikasi
+
+- Peta interaktif dengan basemap OpenStreetMap, berpusat di wilayah Indonesia
+- Visualisasi data gempa terkini (24 jam terakhir) sebagai titik pada peta, dengan ukuran dan warna yang menyesuaikan nilai magnitudo
+- Popup informasi gempa: lokasi, magnitudo, kedalaman, dan waktu kejadian
+- Indikator status pengambilan data (memuat / berhasil / gagal)
+- Alat gambar titik dan polygon langsung di atas peta
+- Form pengisian nama, kategori, dan deskripsi setelah menggambar area
+- Penyimpanan area pantauan ke database Supabase (format geometri GeoJSON)
+- Area pantauan tersimpan otomatis dimuat kembali saat halaman dibuka/di-refresh
+- Sidebar daftar seluruh area pantauan dengan tombol untuk mengarahkan peta ke area terkait
+- Ekspor area pantauan individual ke file `.geojson`
+- Panel info ringkas: jumlah gempa ditampilkan, jumlah area pantauan, dan waktu pembaruan data terakhir
+- Tampilan responsif untuk desktop dan mobile
+
+## Cara Menjalankan Project
+
+1. Clone repository ini
+
+git clone https://github.com/ptriayuauliaa-tech/nextjs-earthquake-webgis.git
+cd nextjs-earthquake-webgis
+
+2. Install dependencies
+
+npm install
+
+3. Buat file `.env.local` dan isi sesuai konfigurasi Supabase (lihat bagian Environment Variable di bawah)
+4. Jalankan development server
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Buka `http://localhost:3000` di browser
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Konfigurasi Environment Variable
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+NEXT_PUBLIC_SUPABASE_URL=<url_project_supabase_anda>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable_key_supabase_anda>
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+Nilai-nilai ini dapat diperoleh dari dashboard Supabase pada menu **Settings → API Keys**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Struktur Project (Singkat)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+src/
+├── app/ # Routing utama (Next.js App Router)
+├── components/
+│ ├── layout/ # Header, Sidebar, SummaryBar
+│ └── map/ # Komponen peta, kontrol gambar, form area
+├── hooks/ # Custom hooks (fetch gempa, fetch area pantauan)
+├── lib/
+│ ├── api/ # Fungsi pengambilan data dari USGS
+│ ├── supabase/ # Koneksi ke Supabase
+│ └── utils/ # Fungsi bantu (format tanggal, warna magnitudo, export)
+└── types/ # Definisi tipe data TypeScript
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Struktur Data Polygon
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Area pantauan disimpan dalam tabel `monitoring_areas` di Supabase:
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| `id` | `uuid` | ID unik, dibuat otomatis |
+| `name` | `text` | Nama area pantauan |
+| `description` | `text` | Deskripsi (opsional) |
+| `category` | `text` | Kategori/jenis area |
+| `geometry` | `jsonb` | Bentuk geometri dalam format GeoJSON (Point atau Polygon) |
+| `created_at` | `timestamptz` | Waktu pembuatan, otomatis terisi |
+
+## Kendala dan Solusi Selama Pengembangan
+
+- **Isu Server-Side Rendering pada Leaflet** — diatasi dengan `"use client"` dan `next/dynamic` (`ssr: false`).
+- **Urutan koordinat GeoJSON vs Leaflet** — GeoJSON `[longitude, latitude]`, Leaflet `[latitude, longitude]`, dibalik secara eksplisit saat render.
+- **Konflik `leaflet-draw` dengan React Strict Mode** — diatasi dengan menonaktifkan `reactStrictMode` di `next.config.ts`.
+- **Ikon marker default Leaflet tidak termuat (404)** — diatasi dengan mengarahkan ikon ke CDN.
+- **Kesalahan konfigurasi environment variable Supabase** — URL sempat menyertakan path tambahan, diperbaiki dengan hanya menggunakan domain dasar.
+
+## Kontributor
+
+Putri Ayu Aulia
