@@ -19,7 +19,7 @@
       }
     ],
     "paths": {
-      "by default@/*": ["./src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [
