@@ -36,9 +36,7 @@ export default function DrawControl({ onShapeDrawn }: DrawControlProps) {
         circle: false,
         circlemarker: false,
       },
-      edit: {
-        featureGroup: drawnItems,
-      },
+      edit: false as any,
     });
 
     map.addControl(drawControl);

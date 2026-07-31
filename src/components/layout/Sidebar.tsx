@@ -1,6 +1,7 @@
 "use client";
 
 import type { MonitoringArea } from "@/hooks/useMonitoringAreas";
+import { downloadAreaAsGeoJSON } from "@/lib/utils/export-geojson";
 
 interface SidebarProps {
   areas: MonitoringArea[];
@@ -30,12 +31,20 @@ export default function Sidebar({ areas, onFocusArea }: SidebarProps) {
                 year: "numeric",
               })}
             </p>
-            <button
-              onClick={() => onFocusArea(area.id)}
-              className="mt-2 w-full rounded bg-calm/20 py-1 text-xs text-calm hover:bg-calm/30"
-            >
-              Lihat di Peta
-            </button>
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={() => onFocusArea(area.id)}
+                className="flex-1 rounded bg-calm/20 py-1 text-xs text-calm hover:bg-calm/30"
+              >
+                Lihat di Peta
+              </button>
+              <button
+                onClick={() => downloadAreaAsGeoJSON(area)}
+                className="flex-1 rounded border border-line py-1 text-xs text-ink-muted hover:bg-panel"
+              >
+                Export
+              </button>
+            </div>
           </li>
         ))}
       </ul>
