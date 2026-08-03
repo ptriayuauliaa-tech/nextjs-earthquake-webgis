@@ -32,9 +32,20 @@ export function useMonitoringAreas() {
     setStatus("success");
   }, []);
 
+  const deleteArea = useCallback(async (id: string) => {
+    const { error } = await supabase.from("monitoring_areas").delete().eq("id", id);
+
+    if (error) {
+      alert(`Gagal menghapus: ${error.message}`);
+      return;
+    }
+
+    await fetchAreas();
+  }, [fetchAreas]);
+
   useEffect(() => {
     fetchAreas();
   }, [fetchAreas]);
 
-  return { areas, status, refetch: fetchAreas };
+  return { areas, status, refetch: fetchAreas, deleteArea };
 }

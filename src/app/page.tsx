@@ -18,7 +18,7 @@ const EarthquakeMap = dynamic(
 export default function Home() {
   const [pendingShape, setPendingShape] = useState<DrawnShape | null>(null);
   const [focusedAreaId, setFocusedAreaId] = useState<string | null>(null);
-  const { areas, refetch } = useMonitoringAreas();
+  const { areas, refetch, deleteArea } = useMonitoringAreas();
   const { data: earthquakeData } = useEarthquakes();
 
   return (
@@ -50,7 +50,7 @@ export default function Home() {
             </div>
           )}
         </main>
-        <Sidebar areas={areas} onFocusArea={setFocusedAreaId} />
+        <Sidebar areas={areas} onFocusArea={setFocusedAreaId} onDeleteArea={deleteArea} />
       </div>
     </div>
   );
