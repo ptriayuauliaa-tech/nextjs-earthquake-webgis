@@ -6,11 +6,21 @@ import { downloadAreaAsGeoJSON } from "@/lib/utils/export-geojson";
 interface SidebarProps {
   areas: MonitoringArea[];
   onFocusArea: (id: string) => void;
+  onDeleteArea: (id: string) => void;
 }
 
-export default function Sidebar({ areas, onFocusArea }: SidebarProps) {
+export default function Sidebar({ areas, onFocusArea, onDeleteArea }: SidebarProps) {
+  function handleDelete(area: MonitoringArea) {
+    const confirmed = window.confirm(
+      `Yakin mau hapus area "${area.name}"? Tindakan ini tidak bisa dibatalkan.`
+    );
+    if (confirmed) {
+      onDeleteArea(area.id);
+    }
+  }
+
   return (
-    <aside className="w-72 shrink-0 overflow-y-auto border-l border-line bg-panel p-4">
+    <aside className="w-full shrink-0 overflow-y-auto border-t border-line bg-panel p-4 md:w-72 md:border-t-0 md:border-l md:max-h-none max-h-56">
       <h2 className="mb-3 text-xs font-semibold tracking-wide text-ink-muted">
         AREA PANTAUAN ({areas.length})
       </h2>
@@ -36,13 +46,19 @@ export default function Sidebar({ areas, onFocusArea }: SidebarProps) {
                 onClick={() => onFocusArea(area.id)}
                 className="flex-1 rounded bg-calm/20 py-1 text-xs text-calm hover:bg-calm/30"
               >
-                Lihat di Peta
+                Lihat
               </button>
               <button
                 onClick={() => downloadAreaAsGeoJSON(area)}
                 className="flex-1 rounded border border-line py-1 text-xs text-ink-muted hover:bg-panel"
               >
                 Export
+              </button>
+              <button
+                onClick={() => handleDelete(area)}
+                className="flex-1 rounded border border-red-400/40 py-1 text-xs text-red-400 hover:bg-red-400/10"
+              >
+                Hapus
               </button>
             </div>
           </li>
