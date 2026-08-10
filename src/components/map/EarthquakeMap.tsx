@@ -9,6 +9,7 @@ import {
   Polygon,
   Marker,
   useMap,
+  LayersControl,
 } from "react-leaflet";
 import {
   getMagnitudeColor,
@@ -75,10 +76,29 @@ export default function EarthquakeMap({
         scrollWheelZoom={true}
         className="h-full w-full bg-panel"
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {/* Fitur Tambahan 2: Basemap Switcher (Layer Control) */}
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer checked name="OpenStreetMap (Standard)">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Dark Mode (CartoDB)">
+            <TileLayer
+              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Satelit (Esri)">
+            <TileLayer
+              attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
 
         {/* Fitur Tambahan 1: Display Koordinat Kursor Real-time */}
         <CursorCoordinates />
