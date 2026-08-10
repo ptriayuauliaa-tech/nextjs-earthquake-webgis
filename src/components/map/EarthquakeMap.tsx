@@ -16,6 +16,7 @@ import {
   formatEarthquakeTime,
 } from "@/lib/utils/magnitude";
 import DrawControl from "./DrawControl";
+import { CursorCoordinates } from "./CursorCoordinates";
 import type { DrawnShape } from "@/types/monitoring-area";
 import type { MonitoringArea } from "@/hooks/useMonitoringAreas";
 import type { EarthquakeFeatureCollection } from "@/types/earthquake";
@@ -78,6 +79,9 @@ export default function EarthquakeMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        {/* Fitur Tambahan 1: Display Koordinat Kursor Real-time */}
+        <CursorCoordinates />
 
         <DrawControl onShapeDrawn={onShapeDrawn} />
         <FlyToArea areaId={focusedAreaId} areas={monitoringAreas} />
