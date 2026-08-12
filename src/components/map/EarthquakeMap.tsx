@@ -1,5 +1,6 @@
 "use client";
 
+import { calculatePolygonAreaInKm2, formatArea } from "@/lib/utils/area";
 import { useEffect } from "react";
 import {
   MapContainer,
@@ -124,6 +125,16 @@ export default function EarthquakeMap({
                     {area.description && <p>{area.description}</p>}
                   </div>
                 </Popup>
+                <Popup>
+  <div className="font-sans text-sm">
+    <p className="font-semibold">{area.name}</p>
+    <p className="font-mono text-xs text-emerald-600 font-semibold">
+      Luas: {formatArea(calculatePolygonAreaInKm2(area.geometry.coordinates[0] as [number, number][]))}
+    </p>
+    <p className="font-mono text-xs">{area.category}</p>
+    {area.description && <p className="mt-1 text-xs">{area.description}</p>}
+  </div>
+</Popup>
               </Polygon>
             );
           }

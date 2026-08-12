@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { MonitoringArea } from "@/hooks/useMonitoringAreas";
 import { downloadAreaAsGeoJSON } from "@/lib/utils/export-geojson";
 import { ConfirmModal } from "./ConfirmModal";
+import { calculatePolygonAreaInKm2, formatArea } from "@/lib/utils/area";
 
 interface SidebarProps {
   areas: MonitoringArea[];
@@ -44,6 +45,14 @@ export default function Sidebar({ areas, onFocusArea, onDeleteArea }: SidebarPro
                   year: "numeric",
                 })}
               </p>
+
+              {/* Hitung Luas jika bentuknya Polygon */}
+{area.geometry.type === "Polygon" && (
+  <p className="mt-1 font-mono text-xs text-emerald-400">
+    Luas: {formatArea(calculatePolygonAreaInKm2(area.geometry.coordinates[0] as [number, number][]))}
+  </p>
+)}
+
               <div className="mt-2 flex gap-2">
                 <button
                   onClick={() => onFocusArea(area.id)}
