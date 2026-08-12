@@ -7,6 +7,7 @@ import AreaForm from "@/components/map/AreaForm";
 import Sidebar from "@/components/layout/Sidebar";
 import SummaryBar from "@/components/layout/SummaryBar";
 import { MagnitudeFilter } from "@/components/map/MagnitudeFilter";
+import { Toast } from "@/components/ui/Toast";
 import { useMonitoringAreas } from "@/hooks/useMonitoringAreas";
 import { useEarthquakes } from "@/hooks/useEarthquakes";
 import type { DrawnShape } from "@/types/monitoring-area";
@@ -20,11 +21,11 @@ export default function Home() {
   const [pendingShape, setPendingShape] = useState<DrawnShape | null>(null);
   const [focusedAreaId, setFocusedAreaId] = useState<string | null>(null);
   const [minMagnitude, setMinMagnitude] = useState<number>(0);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const { areas, refetch, deleteArea } = useMonitoringAreas();
   const { data: earthquakeData } = useEarthquakes();
 
-  // Filter data gempa berdasarkan magnitudo yang dipilih
   const filteredEarthquakeData = useMemo(() => {
     if (!earthquakeData) return null;
     return {
@@ -34,6 +35,11 @@ export default function Home() {
       ),
     };
   }, [earthquakeData, minMagnitude]);
+
+  const handleDeleteAreaWithToast = async (id: string) => {
+    await deleteArea(id);
+    setToastMessage("Area pantauan berhasil dihapus");
+  };
 
   return (
     <div className="flex h-screen w-screen flex-col">
@@ -45,7 +51,6 @@ export default function Home() {
       />
       <div className="relative flex flex-1 overflow-hidden">
         <main className="relative flex-1">
-          {/* Posisi Filter Magnitudo Melayang di Kiri Atas Peta */}
           <div className="absolute top-4 left-14 z-[1000]">
             <MagnitudeFilter
               selectedMinMag={minMagnitude}
@@ -59,6 +64,7 @@ export default function Home() {
             earthquakeData={filteredEarthquakeData}
             focusedAreaId={focusedAreaId}
           />
+
           {pendingShape && (
             <div className="absolute inset-0 z-[2000] flex items-center justify-center bg-black/50 p-4">
               <AreaForm
@@ -67,18 +73,22 @@ export default function Home() {
                 onSaved={() => {
                   setPendingShape(null);
                   refetch();
+                  setToastMessage("Area pantauan baru berhasil disimpan!");
                 }}
               />
             </div>
           )}
         </main>
+
         <Sidebar
           areas={areas}
           earthquakeData={filteredEarthquakeData}
           onFocusArea={setFocusedAreaId}
-          onDeleteArea={deleteArea}
+          onDeleteArea={handleDeleteAreaWithToast}
         />
       </div>
+
+      <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
     </div>
   );
 }
