@@ -1,5 +1,6 @@
 "use client";
 
+import { calculatePolygonAreaInKm2, formatArea } from "@/lib/utils/area";
 import { useEffect } from "react";
 import {
   MapContainer,
@@ -9,6 +10,7 @@ import {
   Polygon,
   Marker,
   useMap,
+  LayersControl,
 } from "react-leaflet";
 import {
   getMagnitudeColor,
@@ -16,6 +18,7 @@ import {
   formatEarthquakeTime,
 } from "@/lib/utils/magnitude";
 import DrawControl from "./DrawControl";
+import { CursorCoordinates } from "./CursorCoordinates";
 import type { DrawnShape } from "@/types/monitoring-area";
 import type { MonitoringArea } from "@/hooks/useMonitoringAreas";
 import type { EarthquakeFeatureCollection } from "@/types/earthquake";
@@ -74,10 +77,32 @@ export default function EarthquakeMap({
         scrollWheelZoom={true}
         className="h-full w-full bg-panel"
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        {/* Fitur Tambahan 2: Basemap Switcher (Layer Control) */}
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer checked name="OpenStreetMap (Standard)">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Dark Mode (CartoDB)">
+            <TileLayer
+              attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Satelit (Esri)">
+            <TileLayer
+              attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
+
+        {/* Fitur Tambahan 1: Display Koordinat Kursor Real-time */}
+        <CursorCoordinates />
 
         <DrawControl onShapeDrawn={onShapeDrawn} />
         <FlyToArea areaId={focusedAreaId} areas={monitoringAreas} />
@@ -100,6 +125,16 @@ export default function EarthquakeMap({
                     {area.description && <p>{area.description}</p>}
                   </div>
                 </Popup>
+                <Popup>
+  <div className="font-sans text-sm">
+    <p className="font-semibold">{area.name}</p>
+    <p className="font-mono text-xs text-emerald-600 font-semibold">
+      Luas: {formatArea(calculatePolygonAreaInKm2(area.geometry.coordinates[0] as [number, number][]))}
+    </p>
+    <p className="font-mono text-xs">{area.category}</p>
+    {area.description && <p className="mt-1 text-xs">{area.description}</p>}
+  </div>
+</Popup>
               </Polygon>
             );
           }
