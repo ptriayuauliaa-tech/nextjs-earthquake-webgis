@@ -74,6 +74,7 @@ export default function Home() {
         </main>
         <Sidebar
           areas={areas}
+          earthquakeData={filteredEarthquakeData}
           onFocusArea={setFocusedAreaId}
           onDeleteArea={deleteArea}
         />

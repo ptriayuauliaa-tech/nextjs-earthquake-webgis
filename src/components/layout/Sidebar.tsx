@@ -2,17 +2,25 @@
 
 import { useState } from "react";
 import type { MonitoringArea } from "@/hooks/useMonitoringAreas";
+import type { EarthquakeFeatureCollection } from "@/types/earthquake";
 import { downloadAreaAsGeoJSON } from "@/lib/utils/export-geojson";
-import { ConfirmModal } from "./ConfirmModal";
 import { calculatePolygonAreaInKm2, formatArea } from "@/lib/utils/area";
+import { countEarthquakesInPolygon } from "@/lib/utils/spatial";
+import { ConfirmModal } from "./ConfirmModal";
 
 interface SidebarProps {
   areas: MonitoringArea[];
+  earthquakeData?: EarthquakeFeatureCollection | null;
   onFocusArea: (id: string) => void;
   onDeleteArea: (id: string) => void;
 }
 
-export default function Sidebar({ areas, onFocusArea, onDeleteArea }: SidebarProps) {
+export default function Sidebar({
+  areas,
+  earthquakeData,
+  onFocusArea,
+  onDeleteArea,
+}: SidebarProps) {
   const [selectedAreaForDelete, setSelectedAreaForDelete] = useState<MonitoringArea | null>(null);
 
   function handleConfirmDelete() {
@@ -34,47 +42,68 @@ export default function Sidebar({ areas, onFocusArea, onDeleteArea }: SidebarPro
         )}
 
         <ul className="flex flex-col gap-2">
-          {areas.map((area) => (
-            <li key={area.id} className="rounded border border-line bg-deep p-3 text-sm">
-              <p className="font-medium text-ink">{area.name}</p>
-              <p className="font-mono text-xs text-signal">{area.category}</p>
-              <p className="mt-1 text-xs text-ink-muted">
-                {new Date(area.created_at).toLocaleDateString("id-ID", {
-                  day: "2-digit",
-                  month: "short",
-                  year: "numeric",
-                })}
-              </p>
+          {areas.map((area) => {
+            // Lakukan Type Casting khusus ke Geometry bertipe Polygon
+            const geometry = area.geometry as { type: string; coordinates: any };
+            const isPolygon = geometry.type === "Polygon";
 
-              {/* Hitung Luas jika bentuknya Polygon */}
-{area.geometry.type === "Polygon" && (
-  <p className="mt-1 font-mono text-xs text-emerald-400">
-    Luas: {formatArea(calculatePolygonAreaInKm2(area.geometry.coordinates[0] as [number, number][]))}
-  </p>
-)}
+            const polygonCoords = isPolygon
+              ? (geometry.coordinates[0] as [number, number][]).map(
+                  ([lng, lat]) => [lat, lng] as [number, number]
+                )
+              : [];
 
-              <div className="mt-2 flex gap-2">
-                <button
-                  onClick={() => onFocusArea(area.id)}
-                  className="flex-1 rounded bg-calm/20 py-1 text-xs text-calm hover:bg-calm/30"
-                >
-                  Lihat
-                </button>
-                <button
-                  onClick={() => downloadAreaAsGeoJSON(area)}
-                  className="flex-1 rounded border border-line py-1 text-xs text-ink-muted hover:bg-panel"
-                >
-                  Export
-                </button>
-                <button
-                  onClick={() => setSelectedAreaForDelete(area)}
-                  className="flex-1 rounded border border-red-400/40 py-1 text-xs text-red-400 hover:bg-red-400/10"
-                >
-                  Hapus
-                </button>
-              </div>
-            </li>
-          ))}
+            const eqCount =
+              isPolygon && earthquakeData?.features
+                ? countEarthquakesInPolygon(polygonCoords, earthquakeData.features)
+                : 0;
+
+            return (
+              <li key={area.id} className="rounded border border-line bg-deep p-3 text-sm">
+                <p className="font-medium text-ink">{area.name}</p>
+                <p className="font-mono text-xs text-signal">{area.category}</p>
+                <p className="mt-1 text-xs text-ink-muted">
+                  {new Date(area.created_at).toLocaleDateString("id-ID", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </p>
+
+                {isPolygon && (
+                  <div className="mt-2 space-y-0.5 border-t border-line/50 pt-2 text-xs font-mono">
+                    <p className="text-emerald-400">
+                      Luas: {formatArea(calculatePolygonAreaInKm2(geometry.coordinates[0]))}
+                    </p>
+                    <p className={eqCount > 0 ? "text-amber-400 font-semibold" : "text-slate-400"}>
+                      Terdeteksi: {eqCount} kejadian gempa
+                    </p>
+                  </div>
+                )}
+
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => onFocusArea(area.id)}
+                    className="flex-1 rounded bg-calm/20 py-1 text-xs text-calm hover:bg-calm/30"
+                  >
+                    Lihat
+                  </button>
+                  <button
+                    onClick={() => downloadAreaAsGeoJSON(area)}
+                    className="flex-1 rounded border border-line py-1 text-xs text-ink-muted hover:bg-panel"
+                  >
+                    Export
+                  </button>
+                  <button
+                    onClick={() => setSelectedAreaForDelete(area)}
+                    className="flex-1 rounded border border-red-400/40 py-1 text-xs text-red-400 hover:bg-red-400/10"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       </aside>
 
