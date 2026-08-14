@@ -1,6 +1,5 @@
 "use client";
 
-import { calculatePolygonAreaInKm2, formatArea } from "@/lib/utils/area";
 import { useEffect } from "react";
 import {
   MapContainer,
@@ -12,6 +11,7 @@ import {
   useMap,
   LayersControl,
 } from "react-leaflet";
+import { calculatePolygonAreaInKm2, formatArea } from "@/lib/utils/area";
 import {
   getMagnitudeColor,
   getMagnitudeRadius,
@@ -75,17 +75,19 @@ export default function EarthquakeMap({
         zoom={DEFAULT_ZOOM}
         minZoom={MIN_ZOOM}
         scrollWheelZoom={true}
-        className="h-full w-full bg-panel"
+        className="h-full w-full bg-slate-950"
       >
-        {/* Fitur Tambahan 2: Basemap Switcher (Layer Control) */}
+        {/* Basemap Switcher (Layer Control) */}
         <LayersControl position="topright">
+          {/* Option 1: OpenStreetMap Standard (Peta Terang & Jelas - Default Checked) */}
           <LayersControl.BaseLayer checked name="OpenStreetMap (Standard)">
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
           </LayersControl.BaseLayer>
 
+          {/* Option 2: Dark Mode (CartoDB Gelap) */}
           <LayersControl.BaseLayer name="Dark Mode (CartoDB)">
             <TileLayer
               attribution='&copy; <a href="https://carto.com/">CARTO</a>'
@@ -93,6 +95,7 @@ export default function EarthquakeMap({
             />
           </LayersControl.BaseLayer>
 
+          {/* Option 3: Satelit (Esri) */}
           <LayersControl.BaseLayer name="Satelit (Esri)">
             <TileLayer
               attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
@@ -101,40 +104,51 @@ export default function EarthquakeMap({
           </LayersControl.BaseLayer>
         </LayersControl>
 
-        {/* Fitur Tambahan 1: Display Koordinat Kursor Real-time */}
+        {/* Display Koordinat Kursor Real-time */}
         <CursorCoordinates />
 
         <DrawControl onShapeDrawn={onShapeDrawn} />
         <FlyToArea areaId={focusedAreaId} areas={monitoringAreas} />
 
+        {/* Render Area Pantauan (Polygon & Point) */}
         {monitoringAreas.map((area) => {
           if (area.geometry.type === "Polygon") {
-            const coordinates = (area.geometry.coordinates[0] as [number, number][]).map(
-              ([lng, lat]) => [lat, lng] as [number, number]
-            );
+            const coordinates = (
+              area.geometry.coordinates[0] as [number, number][]
+            ).map(([lng, lat]) => [lat, lng] as [number, number]);
+
             return (
               <Polygon
                 key={area.id}
                 positions={coordinates}
-                pathOptions={{ color: "#4fb3a9", fillOpacity: 0.3 }}
+                pathOptions={{
+                  color: "#10b981",
+                  fillColor: "#10b981",
+                  fillOpacity: 0.25,
+                  weight: 2,
+                }}
               >
                 <Popup>
                   <div className="font-sans text-sm">
-                    <p className="font-semibold">{area.name}</p>
-                    <p className="font-mono text-xs">{area.category}</p>
-                    {area.description && <p>{area.description}</p>}
+                    <p className="font-semibold text-slate-100">{area.name}</p>
+                    <p className="font-mono text-xs font-semibold text-emerald-400">
+                      Luas:{" "}
+                      {formatArea(
+                        calculatePolygonAreaInKm2(
+                          area.geometry.coordinates[0] as [number, number][]
+                        )
+                      )}
+                    </p>
+                    <p className="font-mono text-xs text-slate-300">
+                      Kategori: {area.category}
+                    </p>
+                    {area.description && (
+                      <p className="mt-1 text-xs text-slate-400">
+                        {area.description}
+                      </p>
+                    )}
                   </div>
                 </Popup>
-                <Popup>
-  <div className="font-sans text-sm">
-    <p className="font-semibold">{area.name}</p>
-    <p className="font-mono text-xs text-emerald-600 font-semibold">
-      Luas: {formatArea(calculatePolygonAreaInKm2(area.geometry.coordinates[0] as [number, number][]))}
-    </p>
-    <p className="font-mono text-xs">{area.category}</p>
-    {area.description && <p className="mt-1 text-xs">{area.description}</p>}
-  </div>
-</Popup>
               </Polygon>
             );
           }
@@ -145,8 +159,10 @@ export default function EarthquakeMap({
               <Marker key={area.id} position={[lat, lng]}>
                 <Popup>
                   <div className="font-sans text-sm">
-                    <p className="font-semibold">{area.name}</p>
-                    <p className="font-mono text-xs">{area.category}</p>
+                    <p className="font-semibold text-slate-100">{area.name}</p>
+                    <p className="font-mono text-xs text-slate-300">
+                      Kategori: {area.category}
+                    </p>
                   </div>
                 </Popup>
               </Marker>
@@ -156,6 +172,7 @@ export default function EarthquakeMap({
           return null;
         })}
 
+        {/* Render Titik Gempa */}
         {earthquakeData?.features.map((feature) => {
           const [lng, lat, depth] = feature.geometry.coordinates;
           const { mag, place, time } = feature.properties;
@@ -168,15 +185,24 @@ export default function EarthquakeMap({
               pathOptions={{
                 color: getMagnitudeColor(mag),
                 fillColor: getMagnitudeColor(mag),
-                fillOpacity: 0.6,
+                fillOpacity: 0.65,
+                weight: 1.5,
               }}
             >
               <Popup>
                 <div className="font-sans text-sm">
-                  <p className="font-semibold">{place ?? "Lokasi tidak diketahui"}</p>
-                  <p className="font-mono">Magnitudo: {mag ?? "N/A"}</p>
-                  <p className="font-mono text-xs">{formatEarthquakeTime(time)}</p>
-                  <p className="font-mono">Kedalaman: {depth} km</p>
+                  <p className="font-semibold text-slate-100">
+                    {place ?? "Lokasi tidak diketahui"}
+                  </p>
+                  <p className="font-mono text-emerald-400 font-semibold">
+                    Magnitudo: {mag ?? "N/A"} SR
+                  </p>
+                  <p className="font-mono text-xs text-slate-300">
+                    {formatEarthquakeTime(time)}
+                  </p>
+                  <p className="font-mono text-xs text-slate-400">
+                    Kedalaman: {depth} km
+                  </p>
                 </div>
               </Popup>
             </CircleMarker>
