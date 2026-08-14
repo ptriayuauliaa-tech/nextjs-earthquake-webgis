@@ -1,3 +1,5 @@
+"use client";
+
 interface SummaryBarProps {
   earthquakeCount: number;
   areaCount: number;
@@ -9,22 +11,41 @@ export default function SummaryBar({
   areaCount,
   lastUpdated,
 }: SummaryBarProps) {
+  const formattedTime = lastUpdated
+    ? new Date(lastUpdated).toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      })
+    : "-";
+
   return (
-    <div className="flex items-center gap-6 border-b border-line bg-panel px-4 py-2 font-mono text-xs text-ink-muted">
-      <span>
-        Gempa ditampilkan: <span className="text-ink">{earthquakeCount}</span>
-      </span>
-      <span>
-        Area pantauan: <span className="text-ink">{areaCount}</span>
-      </span>
-      {lastUpdated && (
-        <span>
-          Update terakhir:{" "}
-          <span className="text-ink">
-            {new Date(lastUpdated).toLocaleTimeString("id-ID")}
+    <div className="relative z-[1050] flex w-full items-center justify-between border-b border-slate-800/60 bg-[#060b17] px-6 py-2 text-xs text-slate-300">
+      <div className="flex items-center gap-4">
+        {/* Stat Pill 1 */}
+        <div className="flex items-center gap-2 rounded-full bg-slate-900/90 border border-slate-800 px-3.5 py-1">
+          <span className="text-base">🌋</span>
+          <span className="text-slate-400 font-medium">Gempa Terdeteksi:</span>
+          <span className="font-bold text-emerald-400 font-mono text-xs">
+            {earthquakeCount} Titik
           </span>
-        </span>
-      )}
+        </div>
+
+        {/* Stat Pill 2 */}
+        <div className="flex items-center gap-2 rounded-full bg-slate-900/90 border border-slate-800 px-3.5 py-1">
+          <span className="text-base">📐</span>
+          <span className="text-slate-400 font-medium">Area Pantauan:</span>
+          <span className="font-bold text-cyan-400 font-mono text-xs">
+            {areaCount} Wilayah
+          </span>
+        </div>
+      </div>
+
+      {/* Time Badge */}
+      <div className="flex items-center gap-2 font-mono text-[11px] text-slate-400 rounded-lg bg-slate-900/60 border border-slate-800/80 px-3 py-1">
+        <span>⏱️ Update:</span>
+        <span className="text-slate-200 font-bold">{formattedTime}</span>
+      </div>
     </div>
   );
 }
