@@ -32,21 +32,22 @@ export default function Sidebar({
 
   return (
     <>
-      <aside className="w-full shrink-0 overflow-y-auto border-t border-slate-800/80 bg-[#070b14] p-5 md:w-88 md:border-t-0 md:border-l md:max-h-none max-h-60">
-        <div className="mb-4 flex items-center justify-between border-b border-slate-800 pb-3">
-          <h2 className="text-xs font-bold tracking-wider text-slate-300 uppercase flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+      <aside className="w-full shrink-0 overflow-y-auto border-t border-[#183a33]/60 bg-[#0d221e] p-5 md:w-84 md:border-t-0 md:border-l">
+        {/* Header Sidebar */}
+        <div className="mb-4 flex items-center justify-between border-b border-[#183a33] pb-3">
+          <h2 className="text-xs font-bold tracking-wider text-[#94a3b8] uppercase flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#34d399]" />
             AREA PANTAUAN ({areas.length})
           </h2>
         </div>
 
         {areas.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-800 p-6 text-center text-xs text-slate-500">
-            Belum ada area pantauan tersimpan.
+          <div className="rounded-2xl border border-dashed border-[#1c3e37] p-8 text-center text-xs text-[#688a82]">
+            Belum ada area pantauan. Silakan gambar polygon atau titik di peta.
           </div>
         )}
 
-        <ul className="flex flex-col gap-3.5">
+        <ul className="flex flex-col gap-3">
           {areas.map((area) => {
             const geometry = area.geometry as { type: string; coordinates: any };
             const isPolygon = geometry.type === "Polygon";
@@ -65,52 +66,50 @@ export default function Sidebar({
             return (
               <li
                 key={area.id}
-                className="group relative rounded-xl border border-slate-800 bg-[#0f172a]/90 p-4 transition-all duration-300 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)]"
+                className="group rounded-2xl border border-[#1e463e] bg-[#112924] p-4 transition duration-200 hover:border-[#34d399]/60 shadow-sm"
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-bold text-white text-sm group-hover:text-emerald-400 transition">
-                      {area.name}
-                    </h3>
-                    <span className="inline-block mt-1 rounded-md bg-slate-800 px-2.5 py-0.5 text-[10px] font-mono text-cyan-300 border border-slate-700">
-                      {area.category}
-                    </span>
-                  </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">
+                    {area.name}
+                  </h3>
+                  <span className="inline-block mt-1 rounded-full bg-[#173a33] px-2.5 py-0.5 text-[10px] font-medium text-[#a7f3d0] border border-[#235248]">
+                    {area.category}
+                  </span>
                 </div>
 
                 {isPolygon && (
-                  <div className="mt-3.5 space-y-1.5 rounded-lg bg-[#030712] p-3 border border-slate-800 text-xs font-mono">
-                    <div className="flex justify-between items-center text-emerald-400">
-                      <span className="text-slate-400">Luas Area:</span>
-                      <span className="font-bold">{formatArea(calculatePolygonAreaInKm2(geometry.coordinates[0]))}</span>
+                  <div className="mt-3 space-y-1 rounded-xl bg-[#0b1b17] p-2.5 border border-[#183831] text-xs font-mono">
+                    <div className="flex justify-between items-center text-[#6ee7b7]">
+                      <span className="text-[#688a82]">Luas Area:</span>
+                      <span className="font-semibold">{formatArea(calculatePolygonAreaInKm2(geometry.coordinates[0]))}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Terdeteksi:</span>
-                      <span className={eqCount > 0 ? "text-amber-400 font-extrabold" : "text-slate-300"}>
-                        {eqCount} kejadian gempa
+                      <span className="text-[#688a82]">Terdeteksi:</span>
+                      <span className={eqCount > 0 ? "text-amber-300 font-semibold" : "text-[#94a3b8]"}>
+                        {eqCount} gempa
                       </span>
                     </div>
                   </div>
                 )}
 
-                <div className="mt-4 flex gap-2">
+                <div className="mt-3.5 flex gap-2">
                   <button
                     onClick={() => onFocusArea(area.id)}
-                    className="flex-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 py-2 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/20 transition cursor-pointer"
+                    className="flex-1 rounded-full bg-[#2f665e] py-1.5 text-xs font-semibold text-white hover:bg-[#3b7e74] transition cursor-pointer"
                   >
                     Lihat
                   </button>
 
                   <button
                     onClick={() => downloadAreaAsGeoJSON(area)}
-                    className="flex-1 rounded-lg bg-slate-800 border border-slate-700 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition cursor-pointer"
+                    className="flex-1 rounded-full bg-[#173a33] border border-[#235248] py-1.5 text-xs font-semibold text-[#cbd5e1] hover:bg-[#1e473e] transition cursor-pointer"
                   >
                     Export
                   </button>
 
                   <button
                     onClick={() => setSelectedAreaForDelete(area)}
-                    className="flex-1 rounded-lg bg-red-500/10 border border-red-500/30 py-2 text-xs font-semibold text-red-400 hover:bg-red-500/20 transition cursor-pointer"
+                    className="flex-1 rounded-full bg-red-950/30 border border-red-800/30 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-900/40 transition cursor-pointer"
                   >
                     Hapus
                   </button>

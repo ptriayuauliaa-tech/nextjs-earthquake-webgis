@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useMapEvents } from 'react-leaflet';
+import { useState } from "react";
+import { useMapEvents } from "react-leaflet";
 
 export function CursorCoordinates() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -9,22 +9,19 @@ export function CursorCoordinates() {
   useMapEvents({
     mousemove(e) {
       setCoords({
-        lat: e.latlng.lat,
-        lng: e.latlng.lng,
+        lat: Number(e.latlng.lat.toFixed(5)),
+        lng: Number(e.latlng.lng.toFixed(5)),
       });
-    },
-    mouseout() {
-      setCoords(null);
     },
   });
 
   if (!coords) return null;
 
   return (
-    <div className="absolute bottom-5 left-5 z-[1000] rounded-lg bg-slate-900/80 px-3 py-1.5 text-xs font-mono text-white shadow-md backdrop-blur-md border border-slate-700/50 pointer-events-none select-none">
-      <span className="text-emerald-400 font-semibold">LAT:</span> {coords.lat.toFixed(5)}
-      <span className="mx-2 text-slate-500">|</span>
-      <span className="text-emerald-400 font-semibold">LNG:</span> {coords.lng.toFixed(5)}
+    <div className="absolute bottom-4 left-4 z-[1000] flex items-center gap-2 rounded-full border border-[#1e463e] bg-[#0d221e]/90 px-3.5 py-1.5 font-mono text-xs text-[#94a3b8] backdrop-blur-md shadow-lg pointer-events-none">
+      <span className="text-[#6ee7b7] font-semibold">LAT:</span> {coords.lat}
+      <span className="text-[#25564b]">|</span>
+      <span className="text-[#67e8f9] font-semibold">LNG:</span> {coords.lng}
     </div>
   );
 }
